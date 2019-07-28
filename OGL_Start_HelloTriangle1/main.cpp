@@ -162,6 +162,10 @@ int main()
     glEnableVertexAttribArray(0); //启用顶点属性（顶点属性位置值作为参数）
     
     glBindBuffer(GL_ARRAY_BUFFER, 0); //取消绑定
+    
+    // 当VAO处于活动状态时，不要取消绑定EBO，VAO会储存glBindBuffer的函数调用，这也意味着它也会储存解绑调用。
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    
     glBindVertexArray(0); //取消绑定
     //================================================================================
     
