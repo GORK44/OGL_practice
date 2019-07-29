@@ -1,0 +1,13 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec3 ourColor;
+in vec2 TexCoord; //纹理坐标
+
+// texture samplers
+uniform sampler2D ourTexture; //纹理采样器
+
+void main()
+{
+    FragColor = texture(ourTexture, TexCoord); //采样纹理的颜色（参数：纹理采样器，纹理坐标）输出对应纹理坐标上的颜色
+}
