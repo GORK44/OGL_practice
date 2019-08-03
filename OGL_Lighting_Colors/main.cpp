@@ -44,7 +44,7 @@ float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 
 // lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f); //光源在世界空间的坐标
 
 
 int main()
@@ -180,14 +180,12 @@ int main()
     glGenVertexArrays(1, &cubeVAO); //创建1个 顶点数组对象
     glGenBuffers(1, &VBO); //创建1个 顶点缓冲对象
 //    glGenBuffers(1, &EBO); //创建1个 索引缓冲对象
-    
+    glBindVertexArray(cubeVAO); //绑定VAO
     
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO); //把顶点缓冲对象绑定到GL_ARRAY_BUFFER（顶点缓冲对象的缓冲类型）目标上
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //把 顶点数据vertices 复制到缓冲的内存中
     //glBufferData参数：目标缓冲的类型（顶点缓冲），大小，数据，数据不会或几乎不会改变。
-    
-    glBindVertexArray(cubeVAO); //绑定VAO
     
     
     //位置属性 position attribute
@@ -197,12 +195,12 @@ int main()
     
     
     //-----------------------------------------------------
-    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+    // 配置灯的VAO（VBO保持不变;灯光对象的顶点相同，也是3D立方体）
     unsigned int lightVAO;
     glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
     
-    // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
+    // 只需要绑定VBO不用再次设置VBO的数据，因为箱子的VBO数据中已经包含了正确的立方体顶点数据
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -331,14 +329,14 @@ int main()
         lastFrame = currentFrame; //保存时间，留在下一帧用
         
         
-        
-        
         // 输入 input
         processInput(window); //输入控制（检查是否按下Esc）
         
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); //设置清空屏幕后填充的颜色
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //清空屏幕的 颜色缓冲 和 深度缓冲
+        
+        
         
         
         // draw
@@ -354,73 +352,40 @@ int main()
         
         
         
-        // be sure to activate shader when setting uniforms/drawing objects
-        lightingShader.use();
-        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+        // 绘制物体
+        lightingShader.use(); //use 对应的着色器程序（来设定uniform）
+        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f); //设定uniform
+        lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f); //设定uniform
         
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        lightingShader.setMat4("projection", projection);
-        lightingShader.setMat4("view", view);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f); //投影矩阵
+        glm::mat4 view = camera.GetViewMatrix(); //观察变换矩阵
+        lightingShader.setMat4("projection", projection); //将 投影矩阵 传给着色器
+        lightingShader.setMat4("view", view); //将 观察变换矩阵 传给着色器
         
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        lightingShader.setMat4("model", model);
+        glm::mat4 model = glm::mat4(1.0f); //初始化矩阵
+        lightingShader.setMat4("model", model); //将 模型变换矩阵 传给着色器
         
-        // render the cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(cubeVAO); // 在绘制物体前简单地把VAO绑定到希望使用的设定上
+        glDrawArrays(GL_TRIANGLES, 0, 36); // 绘制三角形，起始索引为0，顶点数36
         
         
-        // also draw the lamp object
+        // 绘制光源立方体 also draw the lamp object
         lampShader.use();
-        lampShader.setMat4("projection", projection);
-        lampShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lampShader.setMat4("model", model);
+        lampShader.setMat4("projection", projection); //将 投影矩阵 传给着色器
+        lampShader.setMat4("view", view); //将 观察变换矩阵 传给着色器
+        model = glm::mat4(1.0f); //初始化
+        model = glm::translate(model, lightPos); //模型变换：位移
+        model = glm::scale(model, glm::vec3(0.2f)); // 模型变换：缩放
+        lampShader.setMat4("model", model); //将 模型变换矩阵 传给着色器
         
-        glBindVertexArray(lightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(lightVAO); // 在绘制物体前简单地把VAO绑定到希望使用的设定上
+        glDrawArrays(GL_TRIANGLES, 0, 36); // 绘制三角形，起始索引为0，顶点数36
         
-        
-        
-        
-        // activate shader
-//        ourShader.use();
-//
-//
-//
-//
-//        // pass projection matrix to shader (note that in this case it could change every frame)
-//        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-//        ourShader.setMat4("projection", projection);
-//
-//
-//        glm::mat4 view = camera.GetViewMatrix();//变换到相机空间
-//        // 创建一个LookAt矩阵（参数：一个摄像机位置，一个目标位置（计算时减相机位置，得到相机朝向），一个表示世界空间中的上向量的向量）
-//        ourShader.setMat4("view", view); //将转换矩阵传递给着色器
-//
-//        // 绘制立方体
-//        glBindVertexArray(cubeVAO); // 在绘制物体前简单地把VAO绑定到希望使用的设定上
-//        for(unsigned int i = 0; i < 10; i++) //渲染这个立方体10次
-//        {
-//            glm::mat4 model = glm::mat4(1.0f); //模型矩阵
-//            model = glm::translate(model, cubePositions[i]); // 立方体按各自坐标移动
-//            float angle = 20.0f * i; //各个立方体的旋转角度
-//            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); //立方体旋转
-//            ourShader.setMat4("model", model); // 将转换矩阵传递给着色器
-//
-//            glDrawArrays(GL_TRIANGLES, 0, 36);  // 绘制三角形，起始索引为0，顶点数36
-//        }
-//
-////        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); //从索引缓冲渲染（绘制三角形，6个顶点，索引的类型，偏移量）
         //=========================================================================
 
 
+        
+        
         glfwSwapBuffers(window); //交换颜色缓冲，用来绘制，并且将会作为输出显示在屏幕上。
         glfwPollEvents(); //检查有没有触发什么事件
     }
