@@ -166,7 +166,7 @@ int main()
 //        1, 2, 3   // 第二个三角形 second Triangle
 //    };
     
-    // positions all containers
+    // 所有物体坐标 positions all containers
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f),
         glm::vec3( 2.0f,  5.0f, -15.0f),
@@ -180,7 +180,7 @@ int main()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
     
-    // positions of the point lights
+    // 所有点光源坐标 positions of the point lights
     glm::vec3 pointLightPositions[] = {
         glm::vec3( 0.7f,  0.2f,  2.0f),
         glm::vec3( 2.3f, -3.3f, -4.0f),
@@ -280,7 +280,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //清空屏幕的 颜色缓冲 和 深度缓冲
         
         
-        // 随着时间的推移改变灯的位置值
+        // 随着时间的推移改变 点光源0 的位置值
         pointLightPositions[0].x = 1.0f + sin(glfwGetTime()) * 2.0f;
         pointLightPositions[0].y = sin(glfwGetTime() / 2.0f) * 1.0f;
         
@@ -300,19 +300,15 @@ int main()
         lightingShader.setFloat("material.shininess", 32.0f); //镜面高光的散射/半径
         lightingShader.setVec3("viewPos", camera.Position); //设定uniform（相机位置）
         
-        /*
-         Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index
-         the proper PointLight struct in the array to set each uniform variable. This can be done more code-friendly
-         by defining light types as classes and set their values in there, or by using a more efficient uniform approach
-         by using 'Uniform buffer objects', but that is something we'll discuss in the 'Advanced GLSL' tutorial.
-         */
-        // directional light
+        
+        // 定向光 directional light
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
         lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
 //        lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         lightingShader.setVec3("dirLight.diffuse", 0.0f, 0.4f, 0.0f);
         lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        // point light 1
+        
+        // 点光源 point light 1
         lightingShader.setVec3("pointLights[0].position", pointLightPositions[0]);
         lightingShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
         lightingShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
@@ -344,7 +340,8 @@ int main()
         lightingShader.setFloat("pointLights[3].constant", 1.0f);
         lightingShader.setFloat("pointLights[3].linear", 0.09);
         lightingShader.setFloat("pointLights[3].quadratic", 0.032);
-        // spotLight
+        
+        // 聚光 spotLight
         lightingShader.setVec3("spotLight.position", camera.Position);
         lightingShader.setVec3("spotLight.direction", camera.Front);
         lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
@@ -355,22 +352,6 @@ int main()
         lightingShader.setFloat("spotLight.quadratic", 0.032);
         lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        
-//        // light properties
-//        glm::vec3 lightColor = glm::vec3(1.0f);
-////        lightColor.x = sin(glfwGetTime() * 2.0f);
-////        lightColor.y = sin(glfwGetTime() * 0.7f);
-////        lightColor.z = sin(glfwGetTime() * 1.3f);
-//
-//        glm::vec3 diffuseColor = lightColor   * glm::vec3(0.9f); // 降低影响
-//        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // 很低的影响
-//        lightingShader.setVec3("light.ambient",  ambientColor); // 设定uniform（光源的环境光强度）
-//        lightingShader.setVec3("light.diffuse",  diffuseColor); // 设定uniform（光源的漫反射强度）
-//        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f); //设定uniform（光源的镜面反射强度）
-//        lightingShader.setFloat("light.constant",  1.0f); //点光源衰减 常数项
-//        lightingShader.setFloat("light.linear",    0.09f); //点光源衰减 一次项
-//        lightingShader.setFloat("light.quadratic", 0.032f); //点光源衰减 二次项
-        
         
         
         
@@ -391,7 +372,7 @@ int main()
         
         
         glBindVertexArray(cubeVAO); // 在绘制物体前简单地把VAO绑定到希望使用的设定上
-        for(unsigned int i = 0; i < 10; i++)
+        for(unsigned int i = 0; i < 10; i++) //画十个箱子
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
@@ -412,7 +393,7 @@ int main()
         
         // we now draw as many light bulbs as we have point lights.
         glBindVertexArray(lightVAO); // 在绘制物体前简单地把VAO绑定到希望使用的设定上
-        for (unsigned int i = 0; i < 4; i++)
+        for (unsigned int i = 0; i < 4; i++) //画四个点光源
         {
             model = glm::mat4(1.0f); //初始化
             model = glm::translate(model, pointLightPositions[i]); //模型变换：位移
